@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crowdfund Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+  .bg-mesh {
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(34,211,238,0.12) 0%, transparent 40%),
+      radial-gradient(circle at 85% 30%, rgba(168,85,247,0.10) 0%, transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(16,185,129,0.08) 0%, transparent 45%);
+  }
+
+  .progress-fill {
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    background: linear-gradient(90deg, #22d3ee, #06b6d4);
+  }
+  .progress-fill.funded {
+    background: linear-gradient(90deg, #34d399, #10b981);
+  }
+
+  .card-hover {
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 48px -12px rgba(34,211,238,0.15), 0 8px 24px -8px rgba(0,0,0,0.6);
+    border-color: rgba(34,211,238,0.35);
+  }
+
+  .glow-btn {
+    box-shadow: 0 0 0 0 rgba(34,211,238,0.5);
+    transition: box-shadow 0.3s ease, transform 0.15s ease;
+  }
+  .glow-btn:hover {
+    box-shadow: 0 0 24px 2px rgba(34,211,238,0.45);
+    transform: translateY(-1px);
+  }
+  .glow-btn:active { transform: translateY(0px) scale(0.98); }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-in { animation: modalIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .pulse-dot { animation: pulseGlow 1.8s ease-in-out infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.8s linear infinite; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+  .grain-text {
+    background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen bg-mesh">
+
+<header class="border-b border-slate-800/80 sticky top-0 bg-slate-950/80 backdrop-blur-xl z-10">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <div class="absolute inset-0 bg-cyan-400 rounded-xl blur-lg opacity-40"></div>
+        <div class="relative bg-slate-900 border border-cyan-500/40 rounded-xl p-2">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+            <path d="M16 4v20M8 12l8-8 8 8" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 24h20" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <h1 class="text-xl font-display font-bold tracking-tight grain-text">Crowdfund Engine</h1>
+    </div>
+    <button id="openCreateModal" class="glow-btn bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      New Campaign
+    </button>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 py-14">
+  <div class="mb-10 fade-in-up">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+      <span class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Live Funding</span>
+    </div>
+    <h2 class="text-4xl font-display font-extrabold mb-2 grain-text">Active Campaigns</h2>
+    <p class="text-slate-400 text-lg">Back the projects you believe in.</p>
+  </div>
+
+  <div id="loadingState" class="flex items-center justify-center py-24 gap-3 text-slate-500">
+    <svg class="spin" width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25"/><path d="M22 12a10 10 0 00-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <span>Loading campaigns...</span>
+  </div>
+
+  <div id="campaignGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+  <div id="emptyState" class="hidden text-center py-24">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 mb-4">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 4v16M4 12h16" stroke="#475569" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <p class="text-lg text-slate-400 mb-1">No campaigns yet</p>
+    <p class="text-sm text-slate-600">Be the first to create one and start raising funds.</p>
+  </div>
+</main>
+
+<!-- Create Campaign Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div class="modal-in bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-xl font-display font-bold">Create a Campaign</h3>
+      <button type="button" id="closeCreateModalX" class="text-slate-500 hover:text-slate-300 transition-colors">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <form id="createForm" class="space-y-4">
+      <div>
+        <label class="block text-sm text-slate-400 mb-1.5 font-medium">Title</label>
+        <input required name="title" type="text" placeholder="e.g. Clean Water Initiative" class="w-full bg-slate-800/70 border border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-600" />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-400 mb-1.5 font-medium">Description</label>
+        <textarea name="description" rows="3" placeholder="What is this campaign about?" class="w-full bg-slate-800/70 border border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-600 resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm text-slate-400 mb-1.5 font-medium">Target Amount (₹)</label>
+        <input required name="target_amount" type="number" min="1" step="0.01" placeholder="20000" class="w-full bg-slate-800/70 border border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-600" />
+      </div>
+      <p id="createError" class="hidden text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2"></p>
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="closeCreateModal" class="flex-1 bg-slate-800 hover:bg-slate-700 rounded-xl py-2.5 font-medium transition-colors">Cancel</button>
+        <button type="submit" id="createSubmitBtn" class="glow-btn flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl py-2.5 font-semibold transition-colors">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Pledge Modal -->
+<div id="pledgeModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div class="modal-in bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="text-xl font-display font-bold">Pledge to <span id="pledgeCampaignTitle" class="text-cyan-400"></span></h3>
+      <button type="button" id="closePledgeModalX" class="text-slate-500 hover:text-slate-300 transition-colors">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <p class="text-sm text-slate-500 mb-5">Every contribution counts.</p>
+    <form id="pledgeForm" class="space-y-4">
+      <input type="hidden" name="campaign_id" />
+      <div>
+        <label class="block text-sm text-slate-400 mb-1.5 font-medium">Your Name (optional)</label>
+        <input name="donor_name" type="text" placeholder="Anonymous" class="w-full bg-slate-800/70 border border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-slate-600" />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-400 mb-1.5 font-medium">Amount (₹)</label>
+        <input required name="amount" type="number" min="0.01" step="0.01" placeholder="500" class="w-full bg-slate-800/70 border border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-slate-600" />
+      </div>
+      <p id="pledgeError" class="hidden text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2"></p>
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="closePledgeModal" class="flex-1 bg-slate-800 hover:bg-slate-700 rounded-xl py-2.5 font-medium transition-colors">Cancel</button>
+        <button type="submit" id="pledgeSubmitBtn" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl py-2.5 font-semibold transition-colors shadow-[0_0_0_0_rgba(16,185,129,0.5)] hover:shadow-[0_0_24px_2px_rgba(16,185,129,0.45)]">Pledge</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-900 border border-emerald-500/40 text-slate-100 px-5 py-3.5 rounded-xl shadow-2xl z-50 items-center gap-3">
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#34d399" stroke-width="1.5"/><path d="M6 10l3 3 5-6" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span id="toastMessage" class="text-sm font-medium"></span>
+</div>
+
+<script>
+const API_BASE = "/api/campaigns/";
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
+function currency(value) {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
+}
+
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMessage').textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('flex');
+  setTimeout(() => {
+    toast.classList.add('hidden');
+    toast.classList.remove('flex');
+  }, 3000);
+}
+
+function campaignCardHTML(c, index) {
+  const pct = Math.min(c.progress_percentage, 100).toFixed(1);
+  const barClass = c.is_fully_funded ? 'progress-fill funded' : 'progress-fill';
+  const delay = Math.min(index * 60, 300);
+  return `
+    <div class="fade-in-up card-hover bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col" style="animation-delay: ${delay}ms">
+      <div class="flex items-start justify-between mb-2 gap-2">
+        <h3 class="font-display font-bold text-lg leading-tight">${escapeHTML(c.title)}</h3>
+        ${c.is_fully_funded ? '<span class="shrink-0 text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full font-semibold">✓ Funded</span>' : ''}
+      </div>
+      <p class="text-slate-400 text-sm mb-5 flex-1 leading-relaxed">${escapeHTML(c.description || 'No description provided.')}</p>
+
+      <div class="mb-2 flex justify-between items-baseline text-sm">
+        <span class="font-bold text-slate-100 text-base">${currency(c.raised_amount)}</span>
+        <span class="text-slate-500">of ${currency(c.target_amount)}</span>
+      </div>
+      <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden mb-2">
+        <div class="${barClass} h-full rounded-full" style="width: 0%" data-target-width="${pct}%"></div>
+      </div>
+      <div class="flex justify-between text-xs text-slate-500 mb-5">
+        <span class="font-medium">${pct}% funded</span>
+        <span>${c.donation_count} backer${c.donation_count === 1 ? '' : 's'}</span>
+      </div>
+
+      <button
+        class="pledge-btn w-full bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 font-semibold py-2.5 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-800 disabled:hover:text-slate-100"
+        data-id="${c.id}" data-title="${escapeHTML(c.title)}"
+        ${!c.is_active ? 'disabled' : ''}
+      >
+        ${c.is_active ? 'Pledge Now' : 'Campaign Closed'}
+      </button>
+    </div>
+  `;
+}
+
+async function loadCampaigns() {
+  const grid = document.getElementById('campaignGrid');
+  const empty = document.getElementById('emptyState');
+  const loading = document.getElementById('loadingState');
+
+  try {
+    const res = await fetch(API_BASE);
+    const data = await res.json();
+    const campaigns = data.results || data;
+
+    loading.classList.add('hidden');
+
+    if (!campaigns.length) {
+      grid.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    grid.innerHTML = campaigns.map((c, i) => campaignCardHTML(c, i)).join('');
+
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.progress-fill').forEach(bar => {
+        bar.style.width = bar.dataset.targetWidth;
+      });
+    });
+
+    document.querySelectorAll('.pledge-btn').forEach(btn => {
+      btn.addEventListener('click', () => openPledgeModal(btn.dataset.id, btn.dataset.title));
+    });
+  } catch (err) {
+    loading.classList.add('hidden');
+    grid.innerHTML = `<p class="text-rose-400 col-span-full text-center py-10">Failed to load campaigns. Please refresh the page.</p>`;
+  }
+}
+
+// Create campaign modal
+const createModal = document.getElementById('createModal');
+const createForm = document.getElementById('createForm');
+const createError = document.getElementById('createError');
+const createSubmitBtn = document.getElementById('createSubmitBtn');
+
+function openCreateModal() {
+  createError.classList.add('hidden');
+  createForm.reset();
+  createModal.classList.remove('hidden');
+}
+function closeCreateModal() {
+  createModal.classList.add('hidden');
+}
+
+document.getElementById('openCreateModal').addEventListener('click', openCreateModal);
+document.getElementById('closeCreateModal').addEventListener('click', closeCreateModal);
+document.getElementById('closeCreateModalX').addEventListener('click', closeCreateModal);
+createModal.addEventListener('click', (e) => { if (e.target === createModal) closeCreateModal(); });
+
+createForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  createError.classList.add('hidden');
+  createSubmitBtn.disabled = true;
+  createSubmitBtn.textContent = 'Creating...';
+
+  const payload = {
+    title: form.title.value,
+    description: form.description.value,
+    target_amount: form.target_amount.value,
+  };
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      closeCreateModal();
+      loadCampaigns();
+      showToast('Campaign created successfully! 🎉');
+    } else {
+      const firstError = Object.values(data)[0];
+      createError.textContent = Array.isArray(firstError) ? firstError[0] : (data.detail || 'Failed to create campaign.');
+      createError.classList.remove('hidden');
+    }
+  } catch (err) {
+    createError.textContent = 'Network error. Please try again.';
+    createError.classList.remove('hidden');
+  } finally {
+    createSubmitBtn.disabled = false;
+    createSubmitBtn.textContent = 'Create';
+  }
+});
+
+// Pledge modal
+const pledgeModal = document.getElementById('pledgeModal');
+const pledgeForm = document.getElementById('pledgeForm');
+const pledgeError = document.getElementById('pledgeError');
+const pledgeSubmitBtn = document.getElementById('pledgeSubmitBtn');
+
+function openPledgeModal(id, title) {
+  pledgeForm.reset();
+  pledgeForm.campaign_id.value = id;
+  document.getElementById('pledgeCampaignTitle').textContent = title;
+  pledgeError.classList.add('hidden');
+  pledgeModal.classList.remove('hidden');
+}
+function closePledgeModal() {
+  pledgeModal.classList.add('hidden');
+}
+
+document.getElementById('closePledgeModal').addEventListener('click', closePledgeModal);
+document.getElementById('closePledgeModalX').addEventListener('click', closePledgeModal);
+pledgeModal.addEventListener('click', (e) => { if (e.target === pledgeModal) closePledgeModal(); });
+
+pledgeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const id = form.campaign_id.value;
+  pledgeError.classList.add('hidden');
+  pledgeSubmitBtn.disabled = true;
+  pledgeSubmitBtn.textContent = 'Processing...';
+
+  const payload = {
+    donor_name: form.donor_name.value || 'Anonymous',
+    amount: form.amount.value,
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}${id}/pledge/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      closePledgeModal();
+      loadCampaigns();
+      showToast('Pledge received — thank you! 🙌');
+    } else {
+      pledgeError.textContent = data.detail || 'Something went wrong.';
+      pledgeError.classList.remove('hidden');
+    }
+  } catch (err) {
+    pledgeError.textContent = 'Network error. Please try again.';
+    pledgeError.classList.remove('hidden');
+  } finally {
+    pledgeSubmitBtn.disabled = false;
+    pledgeSubmitBtn.textContent = 'Pledge';
+  }
+});
+
+// Close modals with Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeCreateModal();
+    closePledgeModal();
+  }
+});
+
+loadCampaigns();
+</script>
+
+</body>
+</html>
