@@ -95,10 +95,10 @@
       </div>
       <h1 class="text-xl font-display font-bold tracking-tight grain-text">Crowdfund Engine</h1>
     </div>
-    <button id="openCreateModal" class="glow-btn bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      New Campaign
-    </button>
+    <button id="openCreateModal" class="bg-slate-100 hover:bg-white text-slate-950 font-medium text-sm px-4 py-2 rounded-lg transition-colors duration-150 flex items-center gap-2 border border-slate-200/10">
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  New Campaign
+</button>
   </div>
 </header>
 
@@ -130,7 +130,7 @@
 
 <!-- Create Campaign Modal -->
 <div id="createModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-  <div class="modal-in bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+<div class="modal-in bg-slate-900 border border-slate-700/60 rounded-2xl p-6 w-full max-w-md shadow-2xl shadow-black/40">  
     <div class="flex items-center justify-between mb-5">
       <h3 class="text-xl font-display font-bold">Create a Campaign</h3>
       <button type="button" id="closeCreateModalX" class="text-slate-500 hover:text-slate-300 transition-colors">
@@ -153,16 +153,14 @@
       <p id="createError" class="hidden text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2"></p>
       <div class="flex gap-3 pt-2">
         <button type="button" id="closeCreateModal" class="flex-1 bg-slate-800 hover:bg-slate-700 rounded-xl py-2.5 font-medium transition-colors">Cancel</button>
-        <button type="submit" id="createSubmitBtn" class="glow-btn flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl py-2.5 font-semibold transition-colors">Create</button>
-      </div>
+        <button type="submit" id="createSubmitBtn" class="flex-1 bg-slate-100 hover:bg-white text-slate-950 rounded-lg py-2.5 font-medium transition-colors duration-150">Create</button>      </div>
     </form>
   </div>
 </div>
 
 <!-- Pledge Modal -->
 <div id="pledgeModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-  <div class="modal-in bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-    <div class="flex items-center justify-between mb-1">
+<div class="modal-in bg-slate-900 border border-slate-700/60 rounded-2xl p-6 w-full max-w-md shadow-2xl shadow-black/40">    <div class="flex items-center justify-between mb-1">
       <h3 class="text-xl font-display font-bold">Pledge to <span id="pledgeCampaignTitle" class="text-cyan-400"></span></h3>
       <button type="button" id="closePledgeModalX" class="text-slate-500 hover:text-slate-300 transition-colors">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -182,8 +180,7 @@
       <p id="pledgeError" class="hidden text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2"></p>
       <div class="flex gap-3 pt-2">
         <button type="button" id="closePledgeModal" class="flex-1 bg-slate-800 hover:bg-slate-700 rounded-xl py-2.5 font-medium transition-colors">Cancel</button>
-        <button type="submit" id="pledgeSubmitBtn" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl py-2.5 font-semibold transition-colors shadow-[0_0_0_0_rgba(16,185,129,0.5)] hover:shadow-[0_0_24px_2px_rgba(16,185,129,0.45)]">Pledge</button>
-      </div>
+<button type="submit" id="pledgeSubmitBtn" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg py-2.5 font-medium transition-colors duration-150">Pledge</button>      </div>
     </form>
   </div>
 </div>
