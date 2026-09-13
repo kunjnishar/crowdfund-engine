@@ -12,6 +12,11 @@ class Campaign(models.Model):
     tightly controlled through atomic, row-locked updates in the pledge flow.
     """
 
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending Review"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     target_amount = models.DecimalField(
@@ -19,6 +24,9 @@ class Campaign(models.Model):
     )
     raised_amount = models.DecimalField(
         max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)]
+    )
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

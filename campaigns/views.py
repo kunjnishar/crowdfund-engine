@@ -28,17 +28,20 @@ def index_view(request):
 
 class CampaignListCreateView(generics.ListCreateAPIView):
     """
-    GET  /api/campaigns/  -> list campaigns, filterable/searchable/orderable
-    POST /api/campaigns/  -> create a new campaign
+    GET  /api/campaigns/  -> list only approved campaigns, filterable/searchable/orderable
+    POST /api/campaigns/  -> submit a new campaign (defaults to PENDING status,
+                              not publicly visible until an admin approves it)
     """
 
-    queryset = Campaign.objects.all()
     serializer_class = CampaignSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["is_active"]
     search_fields = ["title", "description"]
     ordering_fields = ["created_at", "target_amount", "raised_amount"]
     ordering = ["-created_at"]
+
+    def get_queryset(self):
+        return Campaign.objects.filter(status=Campaign.Status.APPROVED)
 
 
 class CampaignDetailView(generics.RetrieveAPIView):
@@ -93,6 +96,12 @@ class PledgeView(APIView):
             if not campaign.is_active:
                 return Response(
                     {"detail": "Cannot pledge to an inactive campaign."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if campaign.status != Campaign.Status.APPROVED:
+                return Response(
+                    {"detail": "Cannot pledge to a campaign that hasn't been approved."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

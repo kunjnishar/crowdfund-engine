@@ -337,7 +337,7 @@ createForm.addEventListener('submit', async (e) => {
     if (res.ok) {
       closeCreateModal();
       loadCampaigns();
-      showToast('Campaign created successfully! 🎉');
+      showToast('Campaign submitted for review! It will appear once approved. 🕓');
     } else {
       const firstError = Object.values(data)[0];
       createError.textContent = Array.isArray(firstError) ? firstError[0] : (data.detail || 'Failed to create campaign.');
